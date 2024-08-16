@@ -5,21 +5,21 @@ import java.util.ArrayList;
 public class ClientHandler implements Runnable{
     public static ArrayList<ClientHandler> clientHandlers = new ArrayList<>();
     private Socket socket;
-    private BufferReader bufferedReader;
+    private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String clientUsername;
 
     public ClientHandler(Socket socket) {
         try {
             this.socket = socket;
-            this.bufferedWriter = new OutputStreamWriter(socket.getOutputStream());
-            this.bufferedReader = new InputStreamReader(socket.getInputStream());
+            this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
+            this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             this.clientUsername = bufferedReader.readLine();
             clientHandlers.add(this);
             broadcastMessage("SERVER: " + clientUsername + " has entered the chat!");
 
         } catch (IOException e) {
-            closeEverything(socket, bufferedReader, bufferedWriter);
+            closeEverything(socket, bufferedWriter, bufferedReader);
         }
     }
 
@@ -31,7 +31,7 @@ public class ClientHandler implements Runnable{
                 messageFromClient = bufferedReader.readLine();
                 broadcastMessage(messageFromClient);
             } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
+                closeEverything(socket, bufferedWriter, bufferedReader);
                 break;
             }
 
@@ -42,7 +42,7 @@ public class ClientHandler implements Runnable{
     public void broadcastMessage(String messageToSend) {
         for( ClientHandler clientHandler : clientHandlers) {
             try {
-                if(clientHandler.clientUsername.equals(clientUsername)) {
+                if(!clientHandler.clientUsername.equals(clientUsername)) {
                     clientHandler.bufferedWriter.write(messageToSend);
                     clientHandler.bufferedWriter.newLine(); // add a new line after the name input
                     clientHandler.bufferedWriter.flush();  //buffer is sending only the whole blocks, so its necessary to flush it manually
@@ -50,7 +50,7 @@ public class ClientHandler implements Runnable{
 
                 }
             } catch (IOException e) {
-                closeEverything(socket, bufferedReader, bufferedWriter);
+                closeEverything(socket, bufferedWriter, bufferedReader);
             }
         }
     }
