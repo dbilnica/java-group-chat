@@ -1,7 +1,4 @@
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -47,10 +44,36 @@ public class ClientHandler implements Runnable{
             try {
                 if(clientHandler.clientUsername.equals(clientUsername)) {
                     clientHandler.bufferedWriter.write(messageToSend);
-                    clientHandler.bufferedWriter.newLine(); //we need
+                    clientHandler.bufferedWriter.newLine(); // add a new line after the name input
+                    clientHandler.bufferedWriter.flush();  //buffer is sending only the whole blocks, so its necessary to flush it manually
+
 
                 }
+            } catch (IOException e) {
+                closeEverything(socket, bufferedReader, bufferedWriter);
             }
+        }
+    }
+    public void removeClientHandler() {
+        clientHandlers.remove(this);
+        broadcastMessage("SERVER: " + clientUsername + " has left the chat!");
+
+    }
+
+    public void closeEverything(Socket socket, BufferedWriter bufferedWriter, BufferedReader bufferedReader){
+        removeClientHandler();
+        try{
+            if(bufferedReader != null) {
+                bufferedReader.close();
+            }
+            if(bufferedWriter != null) {
+                bufferedWriter.close();
+            }
+            if(socket != null) {
+                socket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
